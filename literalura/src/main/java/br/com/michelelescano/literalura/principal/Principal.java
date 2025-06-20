@@ -1,14 +1,21 @@
-package br.com.michelelescano.literalura.service;
+package br.com.michelelescano.literalura.principal;
 
+import br.com.michelelescano.literalura.dto.AutorDTO;
+import br.com.michelelescano.literalura.dto.LivroDTO;
 import br.com.michelelescano.literalura.model.*;
 import br.com.michelelescano.literalura.model.repository.AutorRepository;
 import br.com.michelelescano.literalura.model.repository.LivroRepository;
+import br.com.michelelescano.literalura.records.DadosAutor;
+import br.com.michelelescano.literalura.records.DadosBusca;
+import br.com.michelelescano.literalura.records.DadosLivro;
+import br.com.michelelescano.literalura.service.ConsumoApi;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Principal {
 
@@ -16,7 +23,6 @@ public class Principal {
     private ConsumoApi consumo = new ConsumoApi();
     private ObjectMapper conversor = new ObjectMapper();
     private final String ENDERECO = "https://gutendex.com/books/?search=";
-
     private LivroRepository livroRepositorio;
     private AutorRepository autorRepositorio;
 
@@ -43,14 +49,14 @@ public class Principal {
 
             System.out.println(menu);
             opcao = leitura.nextInt();
-            leitura.nextLine(); // Limpa o buffer do scanner
+            leitura.nextLine();
 
             switch (opcao) {
                 case 1:
                     buscarLivroPeloTitulo();
                     break;
                 case 2:
-                     listarLivrosRegistrados();
+                    listarLivrosRegistrados();
                     break;
                 case 3:
                     listarAutoresRegistrados();
@@ -59,7 +65,7 @@ public class Principal {
                     listarAutoresVivosPorAno();
                     break;
                 case 5:
-                     listarLivrosPorIdioma();
+                    listarLivrosPorIdioma();
                     break;
                 case 0:
                     System.out.println("Saindo...");
@@ -86,7 +92,7 @@ public class Principal {
 
                 if (livroExistente.isPresent()) {
                     System.out.println("O livro '" + livroExistente.get().getTitulo() + "' já está cadastrado.");
-                    return; // Para a execução do método aqui
+                    return;
                 }
 
                 DadosAutor dadosAutor = livroEncontrado.autores().get(0);
@@ -125,24 +131,63 @@ public class Principal {
 
     private void listarLivrosRegistrados() {
         List<Livro> livros = livroRepositorio.findAll();
-        if (livros.isEmpty()) {
+
+        List<LivroDTO> livrosDTO = livros.stream()
+                .map(livro -> new LivroDTO(
+                        livro.getTitulo(),
+                        livro.getAutor().getNome(),
+                        livro.getIdioma(),
+                        livro.getNumeroDeDownloads()))
+                .collect(Collectors.toList());
+
+        if (livrosDTO.isEmpty()) {
             System.out.println("Nenhum livro cadastrado.");
         } else {
-            System.out.println("----- LIVROS REGISTRADOS -----");
-            livros.forEach(System.out::println);
-            System.out.println("-----------------------------");
+            System.out.println("----- LIVROS CADASTRADOS -----");
+            livrosDTO.forEach(livro -> System.out.printf("""
+                            Título: %s
+                            Autor: %s
+                            Idioma: %s
+                            Downloads: %d
+                            --------------------------------%n""",
+                    livro.titulo(),
+                    livro.autor(),
+                    livro.idioma(),
+                    livro.numeroDeDownloads()));
         }
     }
 
 
     private void listarAutoresRegistrados() {
+
         List<Autor> autores = autorRepositorio.findAll();
-        if (autores.isEmpty()) {
+
+        List<AutorDTO> autoresDTO = autores.stream()
+                .map(autor -> new AutorDTO(
+                        autor.getNome(),
+                        autor.getAnoNascimento(),
+                        autor.getAnoFalecimento(),
+                        autor.getLivros().stream()
+                                .map(livro -> livro.getTitulo())
+                                .collect(Collectors.toList())
+                ))
+                .collect(Collectors.toList());
+
+
+        if (autoresDTO.isEmpty()) {
             System.out.println("Nenhum autor cadastrado.");
         } else {
-            System.out.println("----- AUTORES REGISTRADOS -----");
-            autores.forEach(System.out::println);
-            System.out.println("-----------------------------");
+            System.out.println("----- AUTORES CADASTRADOS -----");
+            autoresDTO.forEach(autor -> System.out.printf("""
+                            Autor: %s
+                            Ano de Nascimento: %d
+                            Ano de Falecimento: %d
+                            Livros: %s
+                            --------------------------------%n""",
+                    autor.nome(),
+                    autor.anoNascimento(),
+                    autor.anoFalecimento(),
+                    autor.livros()));
         }
     }
 
@@ -157,17 +202,32 @@ public class Principal {
             System.out.println("Nenhum autor vivo encontrado para o ano de " + ano);
         } else {
             System.out.println("----- AUTORES VIVOS EM " + ano + " -----");
-            autores.forEach(System.out::println);
-            System.out.println("-----------------------------");
+
+            List<AutorDTO> autoresDTO = autores.stream()
+                    .map(autor -> new AutorDTO(
+                            autor.getNome(),
+                            autor.getAnoNascimento(),
+                            autor.getAnoFalecimento(),
+                            autor.getLivros().stream().map(Livro::getTitulo).collect(Collectors.toList())
+                    ))
+                    .collect(Collectors.toList());
+
+            autoresDTO.forEach(autor -> System.out.printf("""
+                Autor: %s
+                Ano de Nascimento: %d
+                Ano de Falecimento: %d
+                Livros: %s
+                --------------------------------%n""",
+                    autor.nome(), autor.anoNascimento(), autor.anoFalecimento(), autor.livros()));
         }
     }
-
     private void listarLivrosPorIdioma() {
-        System.out.println("Digite o idioma para a busca ex: " +
-                "\n en- inglês" +
-                "\n es- espanhol" +
-                "\n pt- português" +
-                "\n fr- francês");
+        System.out.println("""
+            Digite o idioma para a busca:
+            en - inglês
+            es - espanhol
+            pt - português
+            fr - francês""");
         var idioma = leitura.nextLine();
 
         List<Livro> livros = livroRepositorio.findByIdioma(idioma);
@@ -175,9 +235,25 @@ public class Principal {
         if (livros.isEmpty()) {
             System.out.println("Nenhum livro encontrado para o idioma '" + idioma + "'");
         } else {
-            System.out.println("----- LIVROS NO IDIOMA '" + idioma + "' -----");
-            livros.forEach(System.out::println);
-            System.out.println("-----------------------------");
+            System.out.println("----- LIVROS NO IDIOMA '" + idioma.toUpperCase() + "' -----");
+
+            List<LivroDTO> livrosDTO = livros.stream()
+                    .map(livro -> new LivroDTO(
+                            livro.getTitulo(),
+                            livro.getAutor().getNome(),
+                            livro.getIdioma(),
+                            livro.getNumeroDeDownloads()))
+                    .collect(Collectors.toList());
+
+            livrosDTO.forEach(livro -> System.out.printf("""
+                Título: %s
+                Autor: %s
+                Idioma: %s
+                Downloads: %d
+                --------------------------------%n""",
+                    livro.titulo(), livro.autor(), livro.idioma(), livro.numeroDeDownloads()));
         }
     }
+
 }
+

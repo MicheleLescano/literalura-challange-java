@@ -1,7 +1,8 @@
-package br.com.michelelescano.literalura.model;
+package br.com.michelelescano.literalura.records;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -9,5 +10,6 @@ import java.util.List;
 public record DadosLivro(
         @JsonAlias("title") String titulo,
         @JsonAlias("authors") List<DadosAutor> autores,
-        @JsonAlias("languages") List<String> idiomas) {
+        @JsonAlias("languages") List<String> idiomas,
+        @JsonProperty("download_count") Integer numeroDeDownloads) {
 }

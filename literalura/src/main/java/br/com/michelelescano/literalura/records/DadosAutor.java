@@ -1,4 +1,4 @@
-package br.com.michelelescano.literalura.model;
+package br.com.michelelescano.literalura.records;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

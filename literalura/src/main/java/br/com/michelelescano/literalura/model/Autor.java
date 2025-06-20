@@ -1,5 +1,6 @@
 package br.com.michelelescano.literalura.model;
 
+import br.com.michelelescano.literalura.records.DadosAutor;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,6 @@ public class Autor {
 
     @Column(unique = true)
     private String nome;
-
     private Integer anoNascimento;
     private Integer anoFalecimento;
 

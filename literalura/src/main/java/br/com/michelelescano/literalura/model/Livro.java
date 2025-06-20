@@ -1,5 +1,6 @@
 package br.com.michelelescano.literalura.model;
 
+import br.com.michelelescano.literalura.records.DadosLivro;
 import jakarta.persistence.*;
 
 @Entity
@@ -17,11 +18,14 @@ public class Livro {
 
     private String idioma;
 
+    private Integer numeroDeDownloads;
+
     public Livro() {}
 
     public Livro(DadosLivro dadosLivro) {
         this.titulo = dadosLivro.titulo();
         this.idioma = String.join(", ", dadosLivro.idiomas());
+        this.numeroDeDownloads = dadosLivro.numeroDeDownloads();
 
         if (dadosLivro.autores() != null && !dadosLivro.autores().isEmpty()) {
             this.autor = new Autor(dadosLivro.autores().get(0));
@@ -61,12 +65,19 @@ public class Livro {
         this.idioma = idioma;
     }
 
+    public Integer getNumeroDeDownloads() {
+        return numeroDeDownloads;
+    }
+
     @Override
     public String toString() {
         return  "----- LIVRO -----" +
                 "\nTítulo: " + titulo +
                 "\nAutor: " + (autor != null ? autor.getNome() : "Desconhecido") +
                 "\nIdioma: " + idioma +
+                "\nNúmero de Downloads: " + numeroDeDownloads +
                 "\n---------------";
     }
+
+
 }
