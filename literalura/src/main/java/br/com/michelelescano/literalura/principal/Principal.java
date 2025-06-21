@@ -48,8 +48,14 @@ public class Principal {
                     """;
 
             System.out.println(menu);
-            opcao = leitura.nextInt();
-            leitura.nextLine();
+            var entradaUsuario = leitura.nextLine();
+
+            try {
+                opcao = Integer.parseInt(entradaUsuario);
+            } catch (NumberFormatException e) {
+                System.out.println("Opção inválida. Por favor, digite um número e não um texto.");
+                opcao = -1;
+            }
 
             switch (opcao) {
                 case 1:
